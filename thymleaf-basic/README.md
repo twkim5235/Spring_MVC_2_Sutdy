@@ -268,11 +268,52 @@ HTML 문서는 <,>같은 특수 문자를 기반으로 정의된다. 따라서 �
 
 
 
+### 리터럴
+
+리터럴은 소스코드상에서 고정괸 값을 말하는 용어이다.
 
 
 
+타임리프는 다음과 같은 리터럴이 있다.
+
+- 문자: `'hello'`
+- 숫자: `10`
+- 불린: `true`, `false`
+- null: `null`
 
 
+
+타임리프에서 문자 리터럴은 항상 '....'(작은 따옴표)로 감싸야 한다.
+
+`span th:text="'hello'"`
+
+공백없이 쭉 이어진 문자를 출력한다면 하나의 의미있는 토큰으로 인지해서 다음과 가티 작은 따옴표를 생략할 수 있다.
+
+룰: `A-Z`, `a-z`, `0-9`, `[]`, `.`, `-`, `_`
+
+`<span th:text="hello">`
+
+
+
+~~~html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body><h1>리터럴</h1>
+<ul>
+    <!--주의! 다음 주석을 풀면 예외가 발생함-->
+    <!--    <li>"hello world!" = <span th:text="hello world!"></span></li>-->
+    <li>'hello' + ' world!' = <span th:text="'hello' + ' world!'"></span></li>
+    <li>'hello world!' = <span th:text="'hello world!'"></span></li>
+    <li>'hello ' + ${data} = <span th:text="'hello ' + ${data}"></span></li>
+    <li>리터럴 대체 |hello ${data}| = <span th:text="|hello ${data}|"></span></li>
+</ul>
+</body>
+</html>
+~~~
 
 
 

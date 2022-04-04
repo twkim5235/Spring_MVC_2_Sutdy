@@ -26,7 +26,7 @@ public class BasicController {
     @GetMapping("/text-unescaped")
     public String textUnescaped(Model model) {
         model.addAttribute("data", "Hello <b>Spring!</b>");
-        return "basic/  text-unescaped";
+        return "basic/text-unescaped";
     }
 
     @GetMapping("/variable")
@@ -74,6 +74,12 @@ public class BasicController {
         model.addAttribute("param2", "data2");
 
         return "basic/link";
+    }
+
+    @GetMapping("/literal")
+    public String literal(Model model) {
+        model.addAttribute("data", "Spring!");
+        return "basic/literal";
     }
 
 
