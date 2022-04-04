@@ -143,7 +143,44 @@ HTML 문서는 <,>같은 특수 문자를 기반으로 정의된다. 따라서 �
 
 
 
+### 변수 - SpringEL
 
+타임리프에서 변수를 사용할 때는 변수 표현식을 사용한다.
+
+**변수 표현식: `%{...}`**
+
+그리고 이 변수 표현식에슨 스프링 EL이라는 스프링이 제공하는 표현식을 사용할 수 있다.
+
+```html
+<ul>Object
+    <li>${user.username} = <span th:text="${user.username}"></span></li>
+    <li>${user['username']} = <span th:text="${user['username']}"></span></li>
+    <li>${user.getUsername()} = <span th:text="${user.getUsername()}"></span></li>
+</ul>
+<ul>List
+    <li>${users[0].username} = <span th:text="${users[0].username}"></span></li>
+    <li>${users[0]['username']} = <span th:text="${users[0]['username']}"></span></li>
+    <li>${users[0].getUsername()} = <span th:text="${users[0].getUsername()}"></span></li>
+</ul>
+<ul>Map
+    <li>${userMap['userA'].username} = <span th:text="${userMap['userA'].username}"></span></li>
+    <li>${userMap['userA']['username']} = <span th:text="${userMap['userA']['username']}"></span></li>
+    <li>${userMap['userA'].getUsername()} = <span th:text="${userMap['userA'].getUsername()}"></span></li>
+</ul>
+```
+
+
+
+#### 지역 변수 선언
+
+`th:with` 를 사용하면 지역변수를 사용할 수 있다. 지역 변수는 선언한 태그 안에서만 사용할 수 있다.
+
+~~~html
+<h1>지역 변수 - (th:with)</h1>
+<div th:with="first=${users[0]}">
+    <p>처음 사람의 이름은 <span th:text="${first.username}"></span></p>
+</div>
+~~~
 
 
 
