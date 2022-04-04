@@ -209,7 +209,17 @@ HTML 문서는 <,>같은 특수 문자를 기반으로 정의된다. 따라서 �
 
 
 
+### 유틸리티 객체와 날짜
 
+타임리프는 문자, 숫자, 날짜, URI등을 편리하게 다루는 다양한 유틸리티 객체들을 제공한다.
+
+**타임리프 유틸리티 객체**
+
+- https://www.thymeleaf.org/doc/tutorials/3.0/usingthymeleaf.html#expression-utility-objects
+
+**유틸리티 객체 예시**
+
+- https://www.thymeleaf.org/doc/tutorials/3.0/usingthymeleaf.html#appendix-b-expression-utility-objects
 
 
 
