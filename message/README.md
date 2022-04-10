@@ -87,3 +87,9 @@ ex)
 ex)
 
 `th:text=#{hello.name(${argument})}`  와 같이 파라미터를 이용하여 메시지를 적용할 수 있다.
+
+
+
+### 스프링의 국제화 메시지 선택
+
+스프링은 `Locale` 선택 방식을 변경할 수 있도록 `LocaleResolver` 라는 인터페이스를 제공하는데, 스프링 부트는 기본으로 `Accept-Language` Http Header를 활용하는 `AcceptHeaderLocaleResolver` 를 사용한다.
