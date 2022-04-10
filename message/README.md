@@ -38,3 +38,52 @@ item.price = Price
 item.quantity = Quantity
 ~~~
 
+
+
+### 웹 애플리케이션에 메시지 적용하기
+
+ex)
+
+```html
+<div class="py-5 text-center">
+    <h2 th:text="#{page.addItem}">상품 등록 폼</h2>
+</div>
+
+<form action="item.html" th:action th:object="${item}" method="post">
+    <div>
+        <label for="itemName" th:text="#{label.item.itemName}">상품명</label>
+        <input type="text" id="itemName" th:field="*{itemName}" class="form-control" placeholder="이름을 입력하세요">
+    </div>
+    <div>
+        <label for="price" th:text="#{label.item.price}">가격</label>
+        <input type="text" id="price" th:field="*{price}" class="form-control" placeholder="가격을 입력하세요">
+    </div>
+    <div>
+        <label for="quantity" th:text="#{label.item.quantity}">수량</label>
+        <input type="text" id="quantity" th:field="*{quantity}" class="form-control" placeholder="수량을 입력하세요">
+    </div>
+
+    <hr class="my-4">
+
+    <div class="row">
+        <div class="col">
+            <button class="w-100 btn btn-primary btn-lg" type="submit" th:text="#{button.save}">상품 등록</button>
+        </div>
+        <div class="col">
+            <button class="w-100 btn btn-secondary btn-lg"
+                    onclick="location.href='items.html'"
+                    th:onclick="|location.href='@{/message/items}'|"
+                    type="button" th:text="#{button.cancel}">취소</button>
+        </div>
+    </div>
+
+</form>
+```
+
+`th:text=#{....}` 을 이용하여 메시시를 적용할 수 있다.
+
+**파라미터를 이용한 메시지**
+
+ex)
+
+`th:text=#{hello.name(${argument})}`  와 같이 파라미터를 이용하여 메시지를 적용할 수 있다.
