@@ -8,7 +8,7 @@
 
 다양한 메시지를 한곳에서 관리하는 기능을 메시지 기능이라한다.
 
-ex) `message.properties` 라는 메시지 관리용 파일을 만들어서
+ex) `messages.properties` 라는 메시지 관리용 파일을 만들어서
 
 ~~~properties
 item = 상품
@@ -28,7 +28,7 @@ item.quantity = 수량
 
 메시지 파일을 각 나라별로 관리하면 된다.
 
-ex) `messageEn.properties` 라는 메시지 관리용 파일을 만들어서
+ex) `messages_en.properties` 라는 메시지 관리용 파일을 만들어서
 
 ~~~properties
 item = Item
