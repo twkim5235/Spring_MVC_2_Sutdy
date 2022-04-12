@@ -1,5 +1,6 @@
 package hello.itemservice.web.message;
 
+import hello.itemservice.Service.RetryableService;
 import hello.itemservice.domain.item.Item;
 import hello.itemservice.domain.item.ItemRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,12 @@ import java.util.List;
 public class MessageItemController {
 
     private final ItemRepository itemRepository;
+    private final RetryableService retryableService;
+
+    @GetMapping("/retry-test")
+    public void retryTest() {
+        retryableService.tryRetry();
+    }
 
     @GetMapping
     public String items(Model model) {
