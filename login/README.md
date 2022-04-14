@@ -126,3 +126,87 @@ public class WebConfig {
 - `setOrder()`: 필터는 체인으로 동작한다. `setOrder()` 를 통해 필터의 순서를 정한다.
 
 - `addUrlPatterns`: 필터가 호출되는 url을 설정해준다 `"/*"` 로 설정 시 모든 Url에서 필터가 호출된다.
+
+
+
+### LoginFilter 구현
+
+```java
+@Slf4j
+public class LoginCheckFilter implements Filter {
+
+    private static final String[] whiteList = {"/", "members/add", "/login", "/logout", "/css/*"};
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String requestURI = httpRequest.getRequestURI();
+
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+        try {
+            log.info("인증 체크 필터 시작{}", requestURI);
+
+            if (isLoginCheckPath(requestURI)) {
+                log.info("인증 체크 로직 실행 {}", requestURI);
+                HttpSession session = httpRequest.getSession(false);
+                if (session == null || session.getAttribute(SessionConst.LOGIN_MEMBER) == null) {
+                    log.info("미인증 사용자 요청 {}", requestURI);
+                    //로그인으로 redirect
+                    httpResponse.sendRedirect("/login?redirectURL=" + requestURI);
+                    return;
+                }
+            }
+
+            chain.doFilter(request, response);
+        } catch (Exception e) {
+            throw e; //예외 로깅 가능 하지만, 톰캣까지 예외를 보내주어야 함
+        } finally {
+            log.info("인증 체크 필터 종료 {}", requestURI);
+        }
+    }
+
+    /**
+     * 화이트 리스트인 경우 인증 체크 X
+     */
+    private boolean isLoginCheckPath(String requestURI) {
+        return !PatternMatchUtils.simpleMatch(whiteList, requestURI);
+    }
+}
+```
+
+1. 필터가 실행될 때 `isLoginCheckPath` 에서 요청된 URL이 `whiteList`에 해당되는 URL인지 판단된다. 만약에 해당되는 URL 이면 false를 넘겨서 체크를 안하고, 해당 되지 않는 URL이면 세션을 확인한다.
+2. 세션이 null 이거나, `LOGIN_MEMBER`가 아니면 login 으로 redirect를 하는데 나중에 로그인을 화면 접속한 화면으로 돌아가기 위해 `redirectURL`을 설정한다.
+   1. 설정을 한 뒤, 컨트롤러에 접근할 필요가 없기 때문에 바로 return 한다.
+
+
+
+```java
+@PostMapping("/login")
+public String loginV4(@Valid @ModelAttribute LoginForm form,
+                      BindingResult bindingResult,
+                      @RequestParam(defaultValue = "/") String redirectURL,
+                      HttpServletRequest request) {
+    if (bindingResult.hasErrors()) {
+        return "login/loginForm";
+    }
+
+    Member loginMember = loginService.login(form.getLoginId(), form.getPassword());
+
+    if (loginMember == null) {
+        bindingResult.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다.");
+        return "login/loginForm";
+    }
+
+    //로그인 성공 처리
+    //세션이 있으면 있는 세션 반환, 없으면 신규 세션을 생성
+    HttpSession session = request.getSession();
+    //세션에 로그인 회원 정보 보관
+    session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);
+
+    return "redirect:" + redirectURL;
+}
+```
+
+- 로그인을 성공하면 `redirect:` + 파라미터인 redirectURL로 return 한다.
