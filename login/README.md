@@ -285,6 +285,125 @@ public interface HandlerInterceptor {
 
 
 
+**인터셉터 호출 흐름**
+
+![](./picture/인터셉터_호출_흐름.png)
+
+- postHandle
+  - 컨트롤러 호출후에 호출된다.
+  - **postHandle 은 예외가 발생하면 호출되지 않는다.**
+- afterCompletion
+  - 뷰가 렌더링 된 이후에 호출된다.
+  - **afterCompletion은 예외가 발생해도 호출이 된다. 그래서 Exception을 파라미터로 받아서 어떤 예외가 발생했는지 확인할 수 있다.**
+
+
+
 **정리**
 
 인터셉터는 스프링 MVC 구조에 특화된 필터 기능을 제공한다. 스프링 MVC를 사용하고, 특별히 필터를 꼭 사용해야 하는 상황이 아니라면 인터셉터를 사용하는 것이 더 편리하다.
+
+
+
+### 로그 인터셉터 구현
+
+```java
+@Slf4j
+public class LogInterceptor implements HandlerInterceptor {
+
+    public static final String LOG_ID = "logId";
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+
+        String requestURI = request.getRequestURI();
+        String logId = UUID.randomUUID().toString();
+
+        request.setAttribute(LOG_ID, logId);
+        if (handler instanceof HandlerMethod) {
+            HandlerMethod hm = (HandlerMethod) handler;
+        }
+
+        log.info("REQUEST [{}][{}][{}]", logId, requestURI, handler);
+
+        return true;
+    }
+
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+        log.info("postHandle [{}]", modelAndView);
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        String requestURI = request.getRequestURI();
+        String logId = (String) request.getAttribute(LOG_ID);
+
+        log.info("RESPONSE [{}][{}][{}]", logId, requestURI, handler);
+        if (ex != null) {
+            log.error("afterCompletion error!!", ex);
+        }
+    }
+}
+```
+
+- `request.setAttribute(LOG_ID, uuid)`
+  - 서블릿 필터의 경우 지역변수로 해결이 가능하지만, 스프링 인터셉터는 호출 시점이 완전히 분리되어 있다. 따라서 `preHandle` 에서 지정한 값을 `postHandle`, `afterCompletion` 에서 함께 사용하려면 어딘가에 담아 두어야한다. `LogInterceptor`도 싱글톤 처럼 사용되기 때문에 맴버 변수를 사용하면 위험하다. 따라서 `request` 에 담아 두어서 활용한다.
+- `return true`
+  - 반환값이 ture여야지만 다음 인터셉터나 컨트롤러가 호출된다.
+
+
+
+**HandlerMethod**
+
+핸들러 정보는 어떤 핸들러 매핑을 사용하는가에 따라 달라진다. 스프링을 사용하면 일반적으로 `@Controller`, `@RequestMapping` 을 활용한 핸들러 매핑을 사용하는데, 이 경우 핸들러 정보로 `HandlerMethod` 가 넘어온다.
+
+
+
+**ResourceHttpRequestHandler**
+
+`@Controller`가 아니라 `/resources/static` 와 같은 정적 리소스가 호출된 경우 `ResourceHttpRequestHandler` 가 핸들러 정보로 넘어오기 때문에 타입에 따라서 처리가 필요하다.
+
+
+
+#### 인터셉터 등록
+
+```java
+@Override
+public void addInterceptors(InterceptorRegistry registry) {
+    registry.addInterceptor(new LogInterceptor())
+            .order(1)
+            .addPathPatterns("/**")
+            .excludePathPatterns("/css/**", "/*.ico", "/error");
+}
+```
+
+`addPartterns()` 와 `excludePathPatterns()` 를 보면 매우 정밀하게 url 패턴을 지정할 수 있는 것을 확인할 수 있다.
+
+
+
+**Path Pattrn 예시**
+
+~~~wiki
+Some example patterns:
+
+"/resources/ima?e.png" - match one character in a path segment - 한 문자 일치할 때
+
+"/resources/*.png" - match zero or more characters in a path segment - 경로 안에서 0개이상의 문자 일치
+
+"/resources/**" - match multiple path segments - 경로 끝까지 0개 이상의 경로 일치
+
+"/projects/{project}/versions" - match a path segment and capture it as a variable
+
+"/projects/{project:[a-z]+}/versions" - match and capture a variable with a regex
+~~~
+
+https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#filters-http-put 여기서 확인 가능하다.
+
+ 
+
+
+
+
+
+
+
