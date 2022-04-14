@@ -401,9 +401,50 @@ https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#fil
 
  
 
+### Login 인증 인터셉터 구현
+
+```java
+@Slf4j
+public class LoginCheckInterceptor implements HandlerInterceptor {
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+
+        String requestURI = request.getRequestURI();
+        log.info("인증 체크 인터셉터 실행 {}", requestURI);
+
+        HttpSession session = request.getSession();
+        if (session == null || session.getAttribute(SessionConst.LOGIN_MEMBER) == null) {
+            log.info("미인증 사용자 요청");
+
+            response.sendRedirect("/login?redirectURL=" + requestURI);
+            return false;
+        }
+
+        return true;
+    }
+}
+```
 
 
 
+```java
+@Override
+public void addInterceptors(InterceptorRegistry registry) {
+    registry.addInterceptor(new LogInterceptor())
+            .order(1)
+            .addPathPatterns("/**")
+            .excludePathPatterns("/css/**", "/*.ico", "/error");
 
+    registry.addInterceptor(new LoginCheckInterceptor())
+            .order(2)
+            .addPathPatterns("/**")
+            .excludePathPatterns("/", "/members/add", "/login", "/logout",
+                    "/css/**", "/*.ico", "/error");
+}
+```
 
+- 필터와 다르게 whiteList를 따로 지정안하고 또한 검증 로직을 안만들어도 된다.
+  - 인터셉터를 등록할 때 `excludePathPatterns()` 를 통해서 예외 url을 설정할 수 있다.
+  - 그러므로 코드가 매우 간결해진다.
+- 필터는 각각의 필터를 Bean으로 등록하였는데 인터셉터는 `addInterceptor()` 를 통해 인터셉터만 등록해주면 된다.
 
