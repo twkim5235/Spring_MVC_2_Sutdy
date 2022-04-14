@@ -210,3 +210,81 @@ public String loginV4(@Valid @ModelAttribute LoginForm form,
 ```
 
 - 로그인을 성공하면 `redirect:` + 파라미터인 redirectURL로 return 한다.
+
+
+
+## 스프링 인터셉터
+
+### 스프링 인터셉터 소개
+
+스프링 인터셉터도 서블릿 필터와 같이 웹과 관련된 공통 관심 사항을 효과적으로 해결할 수 있는 기술이다.
+
+스프링 인터셉터는 **스프링 MVC가 제공하는 기술**이며, **필터와는 다른점은 적용되는 순서와 범위 그리고 사용방법이 다르다.**
+
+
+
+**스프링 인터셉터 흐름**
+
+~~~
+HTTP 요청 -> WAS -> 필터 -> 서블릿 -> 스프링 인터셉터 -> 컨트롤러
+~~~
+
+- 스프링 인터셉터는 디스패처 서블릿과 컨트롤러 사이에서 컨트롤러 호출 직전에 호출 된다.
+- 스프링 인터셉터는 스프링 MVC가 제공하는 기능이기 때문에 결국 디스패처 서블릿 이후에 등장하게 된다. 스프링 MVC의 시작점이 디스패처 서블릿이라고 생각하면 이해가 된다.
+- 스프링 인터셉터에도 URL 패턴을 적용할 수 있는데, 서블릿 URL 패턴과는 다르고, 매우 정밀하게 사용할 수 있다.
+
+
+
+**스프링 인터셉터 제한**
+
+~~~
+HTTP 요청 -> WAS -> 필터 -> 서블릿 -> 스프링 인터셉터 -> 컨트롤러 //로그인 사용자
+HTTP 요청 -> WAS -> 필터 -> 서블릿 -> 스프링 인터셉터(적절하지 않은 요청이라 판단, 컨트롤러 호출 X) //비 로그인 사용자
+~~~
+
+인터셉터에서 적절하지 않은 요청이라고 판단하면 거기에서 끝을 낼 수도 있다.
+
+
+
+**스프링 인터셉터 체인**
+
+~~~
+HTTP 요청 -> WAS -> 필터 -> 서블릿 -> 인터셉터1 -> 인터셉터2 -> 컨트롤러
+~~~
+
+스프링 인터셉터는 체인으로 구성되는데, 중간에 인터셉터를 자유롭게 추가할 수 있다.
+
+
+
+**스프링 인터셉터 인터페이스**
+
+스프링의 인터셉터를 사용하려면 `HandleInterceptor` 인터페이스를 구현하면 된다.
+
+```java
+public interface HandlerInterceptor {
+  
+   default boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+         throws Exception {
+
+      return true;
+   }// 컨트롤러 호출되기 전
+
+   default void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
+         @Nullable ModelAndView modelAndView) throws Exception {
+   } // 컨트롤러가 호출 된 후
+
+   default void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
+         @Nullable Exception ex) throws Exception {
+   }// HTTP 요청이 완료 된 후
+
+}
+```
+
+- 서블릿 필터의 경우 단순하게 `doFilter()` 하나만 제공된다. 인터셉터는 컨트롤러 호출 전(`preHandle`), 호출 후 (`postHandle`), 요청 완료 이후(`afterCompletion`)와 같이 단계적으로 잘 세분화 되어 있다.
+- 서블릿 필터의 경우 단순히 `request`, `reponse` 만 제공했지만, 인터셉터는 어떤 컨트롤러(`handler`)가 호출되는지 호출정보도 받을 수 있따. 그리고 어떤 `modelAndView`가 반환되는지 응답정보도 받을 수 있다.
+
+
+
+**정리**
+
+인터셉터는 스프링 MVC 구조에 특화된 필터 기능을 제공한다. 스프링 MVC를 사용하고, 특별히 필터를 꼭 사용해야 하는 상황이 아니라면 인터셉터를 사용하는 것이 더 편리하다.
