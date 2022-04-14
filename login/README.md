@@ -57,3 +57,72 @@ public interface Filter {
 - `init()` : 필터 초기화 메서드, 서블릿 컨테이너가 생성될 때 호출된다.
 - `doFilter()` : 고객의 요청이 올 때 마다 해당 메서드가 호출된다. 필터의 로직을 구현하면 된다.
 - `destroy()` : 필터 종료 메서드, 서블릿 컨테이너가 종료될 때 호출된다.
+
+
+
+### Logfilter 구현
+
+```java
+public class LogFilter implements Filter {
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+        log.info("log filter init");
+    }
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        log.info("log filter doFilter");
+
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String requestURI = httpRequest.getRequestURI();
+
+        String uuid = UUID.randomUUID().toString();
+
+        try {
+            log.info("REQUEST [{}][{}]", uuid, requestURI);
+            chain.doFilter(request, response);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            log.info("RESPONSE [{}][{}]", uuid, requestURI);
+        }
+    }
+
+    @Override
+    public void destroy() {
+        log.info("log filter destroy");
+    }
+}
+```
+
+1. Filter를 구현하기위해 `Filter [Java.sevlert]` 인터페이스를 상속받는다.
+2. Http 요청이 들어오면 `doFilter()`가 호출된다.
+   1. doFilter에 filter가 호출 시 수행할 로직을 구현한다.
+3. `chain.doFilter` 를 호출하면 다음에 필터가 있으면 필터를 호출하고, 필터가 없으면 서블릿이 호출된다.
+   - **꼭 호출해줘야 한다. 그래야만 Controller에 접근할 수 있기 때문이다. 즉 호출을 안하면 다음으로 안넘어간다.**
+
+
+
+```java
+@Configuration
+public class WebConfig {
+
+    @Bean
+    public FilterRegistrationBean logFilter() {
+        FilterRegistrationBean<Filter> filterRegistrationBean = new FilterRegistrationBean<>();
+
+        filterRegistrationBean.setFilter(new LogFilter());
+        filterRegistrationBean.setOrder(1);
+        filterRegistrationBean.addUrlPatterns("/*");
+
+        return filterRegistrationBean;
+    }
+}
+```
+
+필터를 등록하는 방법은 여러가지가 있지만 스프링 부트를 사용하면 `FilterRegistrationBean`을 사용해서 등록하면 된다.
+
+- `setFilter()`: 사용자가 직접 만든 필터를 할당해준다.
+- `setOrder()`: 필터는 체인으로 동작한다. `setOrder()` 를 통해 필터의 순서를 정한다.
+
+- `addUrlPatterns`: 필터가 호출되는 url을 설정해준다 `"/*"` 로 설정 시 모든 Url에서 필터가 호출된다.
